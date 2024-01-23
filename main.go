@@ -1,0 +1,62 @@
+package main
+
+import (
+	"crypto/sha256"
+	"fmt"
+	"io"
+	"io/fs"
+	"os"
+	"path/filepath"
+)
+
+// 1. Walk filetree and hash all files (excluding folders)
+// 2. Save these hashes and their filepath to a map: map[hash]paths
+// 3. Print all entries of the map with more than one path
+func main() {
+	hash_paths := make(map[string][]string)
+	err := filepath.WalkDir(os.Args[1], func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() {
+			return nil
+		}
+
+		file, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		hash, err := calcHashForFile(file)
+		if err != nil {
+			return err
+		}
+		paths := append(hash_paths[hash], path)
+		hash_paths[hash] = paths
+		return nil
+	})
+	if err != nil {
+		fmt.Printf("Error walking the path: %v\n", err)
+	}
+
+	printDuplicates(hash_paths)
+}
+
+func calcHashForFile(file *os.File) (string, error) {
+	hash := sha256.New()
+	_, err := io.Copy(hash, file)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", hash.Sum(nil)), nil
+}
+
+func printDuplicates(hash_paths map[string][]string) {
+	for _, paths := range hash_paths {
+		if len(paths) > 1 {
+			fmt.Println(paths)
+		}
+	}
+}
