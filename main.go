@@ -16,7 +16,8 @@ func main() {
 	hash_paths := make(map[string][]string)
 	err := filepath.WalkDir(os.Args[1], func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			return err
+			fmt.Printf("Error traversing the path: %v\n", err)
+			return nil
 		}
 
 		if d.IsDir() {
@@ -25,19 +26,21 @@ func main() {
 
 		file, err := os.Open(path)
 		if err != nil {
-			return err
+			fmt.Printf("Could not open file: %v\n", err)
+			return nil
 		}
 		defer file.Close()
 		hash, err := calcHashForFile(file)
 		if err != nil {
-			return err
+			fmt.Printf("Could not generate unique identifier for file: %v\n", err)
+			return nil
 		}
 		paths := append(hash_paths[hash], path)
 		hash_paths[hash] = paths
 		return nil
 	})
 	if err != nil {
-		fmt.Printf("Error walking the path: %v\n", err)
+		fmt.Printf("Access error: %v\n", err)
 	}
 
 	printDuplicates(hash_paths)
@@ -56,7 +59,13 @@ func calcHashForFile(file *os.File) (string, error) {
 func printDuplicates(hash_paths map[string][]string) {
 	for _, paths := range hash_paths {
 		if len(paths) > 1 {
-			fmt.Println(paths)
+			for i, path := range paths {
+				if i < len(paths)-1 {
+					fmt.Printf("%d: %v\n", i+1, path)
+				} else {
+					fmt.Printf("%d: %v\n\n", i+1, path)
+				}
+			}
 		}
 	}
 }
