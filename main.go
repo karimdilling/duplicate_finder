@@ -23,8 +23,12 @@ func main() {
 			continue
 		}
 		hash_paths := make(map[string][]string)
-		fmt.Printf("############################### Duplicates in path %v ######################################\n", os.Args[i])
-		err := filepath.WalkDir(os.Args[i], func(path string, d fs.DirEntry, err error) error {
+		abs_path, err := filepath.Abs(os.Args[i])
+		if err != nil {
+			abs_path = os.Args[i]
+		}
+		fmt.Printf("############################### Duplicates in path %v ######################################\n", abs_path)
+		err = filepath.WalkDir(os.Args[i], func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				fmt.Printf("Error traversing the path: %v\n", err)
 				return nil
