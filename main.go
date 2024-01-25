@@ -13,37 +13,49 @@ import (
 // 2. Save these hashes and their filepath to a map: map[hash]paths
 // 3. Print all entries of the map with more than one path
 func main() {
-	hash_paths := make(map[string][]string)
-	err := filepath.WalkDir(os.Args[1], func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			fmt.Printf("Error traversing the path: %v\n", err)
-			return nil
-		}
-
-		if d.IsDir() {
-			return nil
-		}
-
-		file, err := os.Open(path)
-		if err != nil {
-			fmt.Printf("Could not open file: %v\n", err)
-			return nil
-		}
-		defer file.Close()
-		hash, err := calcHashForFile(file)
-		if err != nil {
-			fmt.Printf("Could not generate unique identifier for file: %v\n", err)
-			return nil
-		}
-		paths := append(hash_paths[hash], path)
-		hash_paths[hash] = paths
-		return nil
-	})
-	if err != nil {
-		fmt.Printf("Access error: %v\n", err)
+	if len(os.Args) < 2 {
+		fmt.Println("A folder to search in must be entered. Use '.' for the current directory.")
+		return
 	}
 
-	printDuplicates(hash_paths)
+	for i := range os.Args {
+		if i == 0 {
+			continue
+		}
+		hash_paths := make(map[string][]string)
+		fmt.Printf("############################### Duplicates in path %v ######################################\n", os.Args[i])
+		err := filepath.WalkDir(os.Args[i], func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				fmt.Printf("Error traversing the path: %v\n", err)
+				return nil
+			}
+
+			if d.IsDir() {
+				return nil
+			}
+
+			file, err := os.Open(path)
+			if err != nil {
+				fmt.Printf("Could not open file: %v\n", err)
+				return nil
+			}
+			defer file.Close()
+			hash, err := calcHashForFile(file)
+			if err != nil {
+				fmt.Printf("Could not generate unique identifier for file: %v\n", err)
+				return nil
+			}
+			paths := append(hash_paths[hash], path)
+			hash_paths[hash] = paths
+			return nil
+		})
+		if err != nil {
+			fmt.Printf("Access error: %v\n", err)
+		}
+
+		printDuplicates(hash_paths)
+	}
+
 }
 
 func calcHashForFile(file *os.File) (string, error) {
