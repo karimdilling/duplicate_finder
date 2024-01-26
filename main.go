@@ -27,8 +27,8 @@ func main() {
 		if err != nil {
 			abs_path = os.Args[i]
 		}
-		fmt.Printf("############################### Duplicates in path %v ######################################\n", abs_path)
-		err = filepath.WalkDir(os.Args[i], func(path string, d fs.DirEntry, err error) error {
+		fmt.Printf("################### Duplicates in path %v ###################\n", abs_path)
+		err = filepath.WalkDir(abs_path, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				fmt.Printf("Error traversing the path: %v\n", err)
 				return nil
