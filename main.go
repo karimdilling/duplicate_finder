@@ -17,6 +17,11 @@ import (
 // 3. Print all entries of the map with more than one path
 func main() {
 	flag.Parse()
+	if *options.HelpFlag {
+		options.PrintProgramDescription()
+		flag.PrintDefaults()
+		return
+	}
 	if flag.NArg() < 1 {
 		fmt.Println("A folder to search in must be entered. Use '.' for the current directory.")
 		return
